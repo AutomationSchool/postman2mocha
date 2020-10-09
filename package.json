@@ -1,0 +1,26 @@
+{
+  "name": "postman2mocha",
+  "version": "0.2.0",
+  "description": "Convert Postman collections to Mocha test suites",
+  "main": "src",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/AutomationSchool/postman2mocha.git"
+  },
+  "keywords": [
+    "api",
+    "automation",
+    "test",
+    "postman",
+    "mocha"
+  ],
+  "author": "Rowan Saundry",
+  "license": "GPL-2.0-or-later",
+  "bugs": {
+    "url": "https://github.com/AutomationSchool/postman2mocha/issues"
+  },
+  "homepage": "https://github.com/AutomationSchool/postman2mocha#readme"
+}
