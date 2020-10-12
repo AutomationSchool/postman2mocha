@@ -4,6 +4,7 @@
   "description": "Convert Postman collections to Mocha test suites",
   "main": "src",
   "scripts": {
+    "start": "node src",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -22,5 +23,17 @@
   "bugs": {
     "url": "https://github.com/AutomationSchool/postman2mocha/issues"
   },
-  "homepage": "https://github.com/AutomationSchool/postman2mocha#readme"
+  "homepage": "https://github.com/AutomationSchool/postman2mocha#readme",
+  "dependencies": {
+    "@babel/generator": "^7.11.6",
+    "@babel/parser": "^7.11.5",
+    "@babel/template": "^7.10.4",
+    "@babel/traverse": "^7.11.5",
+    "@babel/types": "^7.11.5",
+    "eslint": "^7.10.0",
+    "eslint-plugin-mocha": "^8.0.0",
+    "fs-extra": "^9.0.1",
+    "postman-collection": "^3.6.7",
+    "yargs": "^16.0.3"
+  }
 }
