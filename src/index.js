@@ -112,7 +112,6 @@ yargs
   })
   .command({
     command: 'project <dest>',
-    aliases: ['*'],
     desc: 'convert a whole project',
     builder: b =>
       b
