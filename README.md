@@ -1,13 +1,13 @@
-# PostmanToMocha
+# Postman2Mocha
 
-Convert postman collections and environment files to scripts that run under mocha / chai.
+Convert postman collections and environment files to scripts that run under Mocha / Chai.
 
 ## Status
 At the moment only some features of Postman are implemented. Current limitations include:
 
 * Only JSON response bodies are supported
 * `pm.environment` can be used but there is no support for globals, variables or collection variables
-* No support for pm.setNextRequest
+* No support for `pm.setNextRequest`
 
 API features that haven't been implemented are included in the generated code as-is so you can translate them manually.
 
@@ -36,9 +36,9 @@ npm start
 This will run the generated collections with no environment file loaded. You can specify the environment to be used as follows:
 
 ```
-test_env=<environment name> npm start
+env_name=<environment name> npm start
 ```
 
 Where the environment name should match one of the available environment files in the `env` directory (without the `.env` extension). Whether an environment file is used or not, environment variables are also passed to the generated tests and are available through `pm.environment` etc.
 
-You can also translate individual collection or environment files with `node src collection <source> <dest>` and `node src environment <source> <dest>`. More information is avaialbe with `node src --help`.
+You can also translate individual collection or environment files with `node src collection <source> <dest>` and `node src environment <source> <dest>`. More information is available with `node src --help`.
