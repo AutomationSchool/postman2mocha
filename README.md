@@ -42,3 +42,7 @@ env_name=<environment name> npm start
 Where the environment name should match one of the available environment files in the `env` directory (without the `.env` extension). Whether an environment file is used or not, environment variables are also passed to the generated tests and are available through `pm.environment` etc.
 
 You can also translate individual collection or environment files with `node src collection <source> <dest>` and `node src environment <source> <dest>`. More information is available with `node src --help`.
+
+## Contributing
+You can find out a bit more about the design [here](https://blog.automationlabs.io/a-tool-to-translate-postman-api-collections-into-mocha-chai-test-suites/).
+If you have any requests, suggestions or other feedback you can get hold of us at [info@automationlabs.io](info@automationlabs.io).

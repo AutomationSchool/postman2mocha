@@ -1,0 +1,219 @@
+{
+	"id": "28b03647-f4e6-408f-ae5b-2c4ad7694c2b",
+	"name": "test-env restaurants-api-client-automated-tests-v5",
+	"values": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3001",
+			"enabled": true
+		},
+		{
+			"key": "maxTimeOutMilliSeconds",
+			"value": "5000",
+			"enabled": true
+		},
+		{
+			"key": "errorIndicatorProperty",
+			"value": "errorMessage",
+			"enabled": true
+		},
+		{
+			"key": "isDebugMode",
+			"value": "true",
+			"enabled": true
+		},
+		{
+			"key": "inputRestaurant1Name",
+			"value": "American Restaurant & Bar",
+			"enabled": true
+		},
+		{
+			"key": "inputRestaurant2Name",
+			"value": "Martini's Italian restaurant",
+			"enabled": true
+		},
+		{
+			"key": "inputRestaurant3Name",
+			"value": "Little Napoleon French Cuisine",
+			"enabled": true
+		},
+		{
+			"key": "inputRestaurant4Name",
+			"value": "Amy's Chinese cuisine",
+			"enabled": true
+		},
+		{
+			"key": "inputRestaurant5Name",
+			"value": "Bombay Indian cuisine & bar",
+			"enabled": true
+		},
+		{
+			"key": "inputRestaurant6Name",
+			"value": "Bad Restaurant & Bar",
+			"enabled": true
+		},
+		{
+			"key": "inputRestaurant7Name",
+			"value": "Le Petit French Vietnamese Cuisine",
+			"enabled": true
+		},
+		{
+			"key": "inputRestaurant1Rating",
+			"value": 4.1,
+			"enabled": true
+		},
+		{
+			"key": "inputRestaurant2Rating",
+			"value": "4.5",
+			"enabled": true
+		},
+		{
+			"key": "inputRestaurant3Rating",
+			"value": "4.3",
+			"enabled": true
+		},
+		{
+			"key": "inputRestaurant4Rating",
+			"value": "4.4",
+			"enabled": true
+		},
+		{
+			"key": "inputRestaurant5Rating",
+			"value": "4.2",
+			"enabled": true
+		},
+		{
+			"key": "inputRestaurant6Rating",
+			"value": "0.1",
+			"enabled": true
+		},
+		{
+			"key": "inputRestaurant7Rating",
+			"value": "",
+			"enabled": true
+		},
+		{
+			"key": "neverExistingRestaurantId",
+			"value": "99999999999",
+			"enabled": true
+		},
+		{
+			"key": "inputRestaurant1NewName",
+			"value": "All-American Restaurant & Bar",
+			"enabled": true
+		},
+		{
+			"key": "searchTermNonExistent",
+			"value": "All-American",
+			"enabled": true
+		},
+		{
+			"key": "searchTermBeforeRename",
+			"value": "American",
+			"enabled": true
+		},
+		{
+			"key": "searchTermBeforeRenameResults",
+			"value": "1",
+			"enabled": true
+		},
+		{
+			"key": "searchTermMatchesBeginning",
+			"value": "Am",
+			"enabled": true
+		},
+		{
+			"key": "searchTermMatchesBeginningResults",
+			"value": "1,4",
+			"enabled": true
+		},
+		{
+			"key": "searchTermMatchesEnding",
+			"value": "bar",
+			"enabled": true
+		},
+		{
+			"key": "searchTermMatchesEndingResults",
+			"value": "1,5",
+			"enabled": true
+		},
+		{
+			"key": "searchTermMatchesMiddle",
+			"value": "Cuisine",
+			"enabled": true
+		},
+		{
+			"key": "searchTermMatchesMiddleResults",
+			"value": "3,4,5",
+			"enabled": true
+		},
+		{
+			"key": "searchTermMatchesSpecialCharAmpersand",
+			"value": "& bar",
+			"enabled": true
+		},
+		{
+			"key": "searchTermMatchesSpecialCharAmpersandResults",
+			"value": "1,5",
+			"enabled": true
+		},
+		{
+			"key": "searchTermMatchesSpecialCharApostrophe",
+			"value": "'s",
+			"enabled": true
+		},
+		{
+			"key": "searchTermMatchesSpecialCharApostropheResults",
+			"value": "2,4",
+			"enabled": true
+		},
+		{
+			"key": "searchTermCaseInsensitive",
+			"value": "FRENCH",
+			"enabled": true
+		},
+		{
+			"key": "searchTermCaseInsensitiveResults",
+			"value": "3",
+			"enabled": true
+		},
+		{
+			"key": "searchTermPicksUpNewlyAddedRestaurant",
+			"value": "FRENCH",
+			"enabled": true
+		},
+		{
+			"key": "searchTermPicksUpNewlyAddedRestaurantResults",
+			"value": "3,7",
+			"enabled": true
+		},
+		{
+			"key": "searchTermAfterRename",
+			"value": "All-American",
+			"enabled": true
+		},
+		{
+			"key": "searchTermAfterRenameResults",
+			"value": "1",
+			"enabled": true
+		},
+		{
+			"key": "allRestaurantsData",
+			"value": "",
+			"enabled": true
+		},
+		{
+			"key": "restaurantSchema",
+			"value": "",
+			"enabled": true
+		},
+		{
+			"key": "restaurantsArraySchema",
+			"value": "",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2020-07-31T21:54:10.527Z",
+	"_postman_exported_using": "Postman/7.22.1"
+}

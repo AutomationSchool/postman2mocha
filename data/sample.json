@@ -1,0 +1,3645 @@
+{
+  "info": {
+    "_postman_id": "ad7165b4-7a4f-473d-bdc9-118ae9c4c5bd",
+    "name": "restaurants-api-client-automated-tests-v5",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "initialization / prep work",
+      "item": [
+        {
+          "name": "basic sanity check - update env with validation schemas etc.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "7a348980-805f-4ab0-b5e7-3ff2b7ec9291",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no data should exist initially\", function () {",
+                  "    let restaurants = pm.response.json();",
+                  "    pm.expect(Array.isArray(restaurants)).to.be.true;",
+                  "    pm.expect(restaurants.length).to.eql(0);",
+                  "});",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "26e2e1b1-588e-42eb-bf66-d7a169bd3b0f",
+                "exec": [
+                  "let restaurantSchema = {",
+                  "        \"type\": \"object\",",
+                  "        \"properties\": {",
+                  "            \"id\": { ",
+                  "                \"type\": \"integer\" ",
+                  "            },",
+                  "            \"name\": { ",
+                  "                \"type\": \"string\" ",
+                  "            },",
+                  "            \"rating\": { ",
+                  "                \"type\": \"number\" ",
+                  "            }",
+                  "        },",
+                  "        \"required\": [ \"id\", \"name\"]",
+                  "    };",
+                  "",
+                  "//Save it in the env. We will use this env variable value in downstream tests to validate schema for 1 restaurant.",
+                  "pm.environment.set('restaurantSchema', restaurantSchema);",
+                  "    ",
+                  "let restaurantsArraySchema = {",
+                  "       \"type\": \"array\",",
+                  "       \"items\": {",
+                  "            \"type\": \"object\",",
+                  "            \"properties\": {",
+                  "                \"id\": { ",
+                  "                    \"type\": \"integer\" ",
+                  "                },",
+                  "                \"name\": { ",
+                  "                    \"type\": \"string\" ",
+                  "                },",
+                  "                \"rating\": { ",
+                  "                    \"type\": \"number\" ",
+                  "                }",
+                  "            },",
+                  "            \"required\": [ \"id\", \"name\"]",
+                  "        }",
+                  "};",
+                  "",
+                  "",
+                  "//Save it in the env. We will use this env variable value in downstream tests to validate schema for an array of restaurants.",
+                  "pm.environment.set('restaurantsArraySchema', restaurantsArraySchema);",
+                  "",
+                  "let allRestaurantsData = {};",
+                  "//Save it in the env. This variable will always contain the up-to-date restaurant data on all restaurants. We will use this env variable value in downstream tests.",
+                  "pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants"
+              ]
+            },
+            "description": "We will check to see what restaurant data is here. It should be empty at this point."
+          },
+          "response": []
+        }
+      ],
+      "protocolProfileBehavior": {}
+    },
+    {
+      "name": "setup test data",
+      "item": [
+        {
+          "name": "add a new restaurant1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "3ec42161-0b34-4483-af3e-0d4b773aa532",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"name matches requested restaurant name\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let inputRestaurantName = pm.environment.get('inputRestaurant1Name');",
+                  "    ",
+                  "    pm.expect(restaurantResponse.name).eql(inputRestaurantName);",
+                  "});",
+                  "",
+                  "pm.test(\"saving the id of restaurant in env\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //save the id in env for later use",
+                  "    pm.environment.set('restaurantId1', restaurantResponse.id);",
+                  "});",
+                  "",
+                  "pm.test(\"saving full restaurant response in env\", function () {",
+                  "    //save the full response in env for later use",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    //update with current restaurant data",
+                  "    allRestaurantsData[restaurantResponse.id] = restaurantResponse;",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "318cecdf-bfdd-4aa8-8e8e-14723bf3ebeb",
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{inputRestaurant1Name}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "add a new restaurant2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "bd4dc763-bde0-4e84-a083-a27b3b879944",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"name matches requested restaurant name\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let inputRestaurantName = pm.environment.get('inputRestaurant2Name');",
+                  "    ",
+                  "    pm.expect(restaurantResponse.name).eql(inputRestaurantName);",
+                  "});",
+                  "",
+                  "pm.test(\"saving the id of restaurant in env\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //save the id in env for later use",
+                  "    pm.environment.set('restaurantId2', restaurantResponse.id);",
+                  "});",
+                  "",
+                  "pm.test(\"saving full restaurant response in env\", function () {",
+                  "    //save the full response in env for later use",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    //update with current restaurant data",
+                  "    allRestaurantsData[restaurantResponse.id] = restaurantResponse;",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{inputRestaurant2Name}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "add a new restaurant3",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "85547c82-18c4-4e5d-a8db-a3932a6564a4",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"name matches requested restaurant name\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let inputRestaurantName = pm.environment.get('inputRestaurant3Name');",
+                  "    ",
+                  "    pm.expect(restaurantResponse.name).eql(inputRestaurantName);",
+                  "});",
+                  "",
+                  "pm.test(\"saving the id of restaurant in env\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //save the id in env for later use",
+                  "    pm.environment.set('restaurantId3', restaurantResponse.id);",
+                  "});",
+                  "",
+                  "pm.test(\"saving full restaurant response in env\", function () {",
+                  "    //save the full response in env for later use",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    //update with current restaurant data",
+                  "    allRestaurantsData[restaurantResponse.id] = restaurantResponse;",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{inputRestaurant3Name}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "add a new restaurant4",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "0ef425a1-dcc8-4b75-ae27-c132573680b8",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"name matches requested restaurant name\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let inputRestaurantName = pm.environment.get('inputRestaurant4Name');",
+                  "    ",
+                  "    pm.expect(restaurantResponse.name).eql(inputRestaurantName);",
+                  "});",
+                  "",
+                  "pm.test(\"saving the id of restaurant in env\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //save the id in env for later use",
+                  "    pm.environment.set('restaurantId4', restaurantResponse.id);",
+                  "});",
+                  "",
+                  "pm.test(\"saving full restaurant response in env\", function () {",
+                  "    //save the full response in env for later use",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    //update with current restaurant data",
+                  "    allRestaurantsData[restaurantResponse.id] = restaurantResponse;",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{inputRestaurant4Name}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "add a new restaurant5",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "e28bdbbd-d41f-4648-922a-183e5d20a10f",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"name matches requested restaurant name\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let inputRestaurantName = pm.environment.get('inputRestaurant5Name');",
+                  "    ",
+                  "    pm.expect(restaurantResponse.name).eql(inputRestaurantName);",
+                  "});",
+                  "",
+                  "pm.test(\"saving the id of restaurant in env\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //save the id in env for later use",
+                  "    pm.environment.set('restaurantId5', restaurantResponse.id);",
+                  "});",
+                  "",
+                  "pm.test(\"saving full restaurant response in env\", function () {",
+                  "    //save the full response in env for later use",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    //update with current restaurant data",
+                  "    allRestaurantsData[restaurantResponse.id] = restaurantResponse;",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{inputRestaurant5Name}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "add a new restaurant6",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "8f448143-63ca-426c-a6ec-66901ca0e23a",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"name matches requested restaurant name\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let inputRestaurantName = pm.environment.get('inputRestaurant6Name');",
+                  "    ",
+                  "    pm.expect(restaurantResponse.name).eql(inputRestaurantName);",
+                  "});",
+                  "",
+                  "pm.test(\"saving the id of restaurant in env\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //save the id in env for later use",
+                  "    pm.environment.set('restaurantId6', restaurantResponse.id);",
+                  "});",
+                  "",
+                  "pm.test(\"saving full restaurant response in env\", function () {",
+                  "    //save the full response in env for later use",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    //update with current restaurant data",
+                  "    allRestaurantsData[restaurantResponse.id] = restaurantResponse;",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{inputRestaurant6Name}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "This folder contains the requests we use to setup some test data and our environment.",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "id": "a2fa2dcc-280a-469c-8fcd-2ab738ae6902",
+            "type": "text/javascript",
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "id": "1e972e30-e601-467f-adf0-cb4f0c4a6a08",
+            "type": "text/javascript",
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ],
+      "protocolProfileBehavior": {}
+    },
+    {
+      "name": "tests",
+      "item": [
+        {
+          "name": "get all restaurants",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "330d9c7c-9067-437c-9fc6-3b13787c62a1",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurants schema validation\", function () {",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantsArraySchema = pm.environment.get('restaurantsArraySchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantsResponse, restaurantsArraySchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"should have expected number of restaurants\", function () {",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    let expectedNumberOfRestaurants = Object.keys(allRestaurantsData).length;",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "       console.log(\"verifying length: \" + restaurantsResponse.length + \" === \" + expectedNumberOfRestaurants);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(restaurantsResponse.length).to.eql(expectedNumberOfRestaurants);",
+                  "    ",
+                  "});",
+                  "",
+                  "pm.test(\"should have matching id, name for all restaurants\", function () {",
+                  "    ",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    //for each restaurant in the response array, check id, name match expected values",
+                  "    restaurantsResponse.forEach( function (restaurantResponse) {",
+                  "        ",
+                  "        let expectedRestaurantInfo = allRestaurantsData[restaurantResponse.id];",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "            console.log(\"verifying id: \" + restaurantResponse.id + \" === \" + expectedRestaurantInfo.id);",
+                  "            console.log(\"verifying name: \" + restaurantResponse.name + \" === \" + expectedRestaurantInfo.name);",
+                  "            console.log(\"verifying rating: \" + restaurantResponse.rating + \" === \" + expectedRestaurantInfo.rating);",
+                  "        }",
+                  "        ",
+                  "        pm.expect(restaurantResponse.id).to.eql(expectedRestaurantInfo.id);",
+                  "        pm.expect(restaurantResponse.name).to.eql(expectedRestaurantInfo.name);  ",
+                  "        pm.expect(restaurantResponse.rating).to.eql(expectedRestaurantInfo.rating);  ",
+                  "    });",
+                  "    ",
+                  "    ",
+                  "    ",
+                  "});",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete restaurant6",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "39a28342-cfc9-4932-8a61-d53918576446",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"should have expected deleted restaurant\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let currentRestaurantId = pm.environment.get('restaurantId6');",
+                  "    ",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    let expectedRestaurantInfo = allRestaurantsData[currentRestaurantId];",
+                  "    ",
+                  "    pm.expect(restaurantResponse.id).to.eql(expectedRestaurantInfo.id);",
+                  "    pm.expect(restaurantResponse.name).to.eql(expectedRestaurantInfo.name);",
+                  "});",
+                  "",
+                  "pm.test(\"delete restaurant info from env\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "        console.log(\"before deletion count: \" + Object.keys(allRestaurantsData).length);",
+                  "    }",
+                  "    ",
+                  "    //delete current restaurant data",
+                  "    delete allRestaurantsData[restaurantResponse.id];",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "        console.log(\"after deletion count: \" + Object.keys(allRestaurantsData).length);",
+                  "    }",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId6}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "{{restaurantId6}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get all restaurants",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "330d9c7c-9067-437c-9fc6-3b13787c62a1",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurants schema validation\", function () {",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantsArraySchema = pm.environment.get('restaurantsArraySchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantsResponse, restaurantsArraySchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"should have expected number of restaurants\", function () {",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    let expectedNumberOfRestaurants = Object.keys(allRestaurantsData).length;",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "       console.log(\"verifying length: \" + restaurantsResponse.length + \" === \" + expectedNumberOfRestaurants);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(restaurantsResponse.length).to.eql(expectedNumberOfRestaurants);",
+                  "    ",
+                  "});",
+                  "",
+                  "pm.test(\"should have matching id, name for all restaurants\", function () {",
+                  "    ",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    //for each restaurant in the response array, check id, name match expected values",
+                  "    restaurantsResponse.forEach( function (restaurantResponse) {",
+                  "        ",
+                  "        let expectedRestaurantInfo = allRestaurantsData[restaurantResponse.id];",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "            console.log(\"verifying id: \" + restaurantResponse.id + \" === \" + expectedRestaurantInfo.id);",
+                  "            console.log(\"verifying name: \" + restaurantResponse.name + \" === \" + expectedRestaurantInfo.name);",
+                  "            console.log(\"verifying rating: \" + restaurantResponse.rating + \" === \" + expectedRestaurantInfo.rating);",
+                  "        }",
+                  "        ",
+                  "        pm.expect(restaurantResponse.id).to.eql(expectedRestaurantInfo.id);",
+                  "        pm.expect(restaurantResponse.name).to.eql(expectedRestaurantInfo.name);  ",
+                  "        pm.expect(restaurantResponse.rating).to.eql(expectedRestaurantInfo.rating);  ",
+                  "    });",
+                  "    ",
+                  "});",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "(negative) get restaurant6",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "7ab9f44b-fe38-4959-be64-0578397b64f6",
+                "exec": [
+                  "pm.test(\"status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test(\"response has error message\", function () {",
+                  "    let jsonData = pm.response.json();",
+                  "    ",
+                  "    let errorIndicatorProperty = pm.environment.get(\"errorIndicatorProperty\"); ",
+                  "    pm.expect(jsonData).to.have.property(errorIndicatorProperty);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId6}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "{{restaurantId6}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update restaurant1 rating",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f42742b0-ea26-4da1-a876-334b77792ea0",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"response id, name, rating matches request id, name, rating\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let inputRestaurantId = pm.environment.get('restaurantId1');",
+                  "    let inputRestaurantName = pm.environment.get('inputRestaurant1Name');",
+                  "    let inputRestaurantRating = pm.environment.get('inputRestaurant1Rating');",
+                  "    ",
+                  "    //If you enter a non-string input into postman env variable manually, it may show up as a string type. Just to be sure, convert it",
+                  "    inputRestaurantRating = parseFloat(inputRestaurantRating);",
+                  "    ",
+                  "    pm.expect(restaurantResponse.id).eql(inputRestaurantId);",
+                  "    pm.expect(restaurantResponse.name).eql(inputRestaurantName);",
+                  "    pm.expect(restaurantResponse.rating).eql(inputRestaurantRating);",
+                  "});",
+                  "",
+                  "pm.test(\"saving full restaurant response in env\", function () {",
+                  "    //save the full response in env for later use",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    //update with current restaurant data",
+                  "    allRestaurantsData[restaurantResponse.id] = restaurantResponse;",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "       console.log(\"updated rating to: \" + allRestaurantsData[restaurantResponse.id].rating);",
+                  "    }",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{inputRestaurant1Name}}\",\n    \"rating\": {{inputRestaurant1Rating}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId1}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "{{restaurantId1}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update restaurant2 rating",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f42742b0-ea26-4da1-a876-334b77792ea0",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"response id, name, rating matches request id, name, rating\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let inputRestaurantId = pm.environment.get('restaurantId2');",
+                  "    let inputRestaurantName = pm.environment.get('inputRestaurant2Name');",
+                  "    let inputRestaurantRating = pm.environment.get('inputRestaurant2Rating');",
+                  "    ",
+                  "    //If you enter a non-string input into postman env variable manually, it may show up as a string type. Just to be sure, convert it",
+                  "    inputRestaurantRating = parseFloat(inputRestaurantRating);",
+                  "    ",
+                  "    pm.expect(restaurantResponse.id).eql(inputRestaurantId);",
+                  "    pm.expect(restaurantResponse.name).eql(inputRestaurantName);",
+                  "    pm.expect(restaurantResponse.rating).eql(inputRestaurantRating);",
+                  "});",
+                  "",
+                  "pm.test(\"saving full restaurant response in env\", function () {",
+                  "    //save the full response in env for later use",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    //update with current restaurant data",
+                  "    allRestaurantsData[restaurantResponse.id] = restaurantResponse;",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "       console.log(\"updated rating to: \" + allRestaurantsData[restaurantResponse.id].rating);",
+                  "    }",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{inputRestaurant2Name}}\",\n    \"rating\": {{inputRestaurant2Rating}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId2}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "{{restaurantId2}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update restaurant3 rating",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f42742b0-ea26-4da1-a876-334b77792ea0",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"response id, name, rating matches request id, name, rating\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let inputRestaurantId = pm.environment.get('restaurantId3');",
+                  "    let inputRestaurantName = pm.environment.get('inputRestaurant3Name');",
+                  "    let inputRestaurantRating = pm.environment.get('inputRestaurant3Rating');",
+                  "    ",
+                  "    //If you enter a non-string input into postman env variable manually, it may show up as a string type. Just to be sure, convert it",
+                  "    inputRestaurantRating = parseFloat(inputRestaurantRating);",
+                  "    ",
+                  "    pm.expect(restaurantResponse.id).eql(inputRestaurantId);",
+                  "    pm.expect(restaurantResponse.name).eql(inputRestaurantName);",
+                  "    pm.expect(restaurantResponse.rating).eql(inputRestaurantRating);",
+                  "});",
+                  "",
+                  "pm.test(\"saving full restaurant response in env\", function () {",
+                  "    //save the full response in env for later use",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    //update with current restaurant data",
+                  "    allRestaurantsData[restaurantResponse.id] = restaurantResponse;",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "       console.log(\"updated rating to: \" + allRestaurantsData[restaurantResponse.id].rating);",
+                  "    }",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{inputRestaurant3Name}}\",\n    \"rating\": {{inputRestaurant3Rating}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId3}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "{{restaurantId3}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update restaurant4 rating",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f42742b0-ea26-4da1-a876-334b77792ea0",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"response id, name, rating matches request id, name, rating\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let inputRestaurantId = pm.environment.get('restaurantId4');",
+                  "    let inputRestaurantName = pm.environment.get('inputRestaurant4Name');",
+                  "    let inputRestaurantRating = pm.environment.get('inputRestaurant4Rating');",
+                  "    ",
+                  "    //If you enter a non-string input into postman env variable manually, it may show up as a string type. Just to be sure, convert it",
+                  "    inputRestaurantRating = parseFloat(inputRestaurantRating);",
+                  "    ",
+                  "    pm.expect(restaurantResponse.id).eql(inputRestaurantId);",
+                  "    pm.expect(restaurantResponse.name).eql(inputRestaurantName);",
+                  "    pm.expect(restaurantResponse.rating).eql(inputRestaurantRating);",
+                  "});",
+                  "",
+                  "pm.test(\"saving full restaurant response in env\", function () {",
+                  "    //save the full response in env for later use",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    //update with current restaurant data",
+                  "    allRestaurantsData[restaurantResponse.id] = restaurantResponse;",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "       console.log(\"updated rating to: \" + allRestaurantsData[restaurantResponse.id].rating);",
+                  "    }",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{inputRestaurant4Name}}\",\n    \"rating\": {{inputRestaurant4Rating}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId4}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "{{restaurantId4}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update restaurant5 rating",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f42742b0-ea26-4da1-a876-334b77792ea0",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"response id, name, rating matches request id, name, rating\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let inputRestaurantId = pm.environment.get('restaurantId5');",
+                  "    let inputRestaurantName = pm.environment.get('inputRestaurant5Name');",
+                  "    let inputRestaurantRating = pm.environment.get('inputRestaurant5Rating');",
+                  "    ",
+                  "    //If you enter a non-string input into postman env variable manually, it may show up as a string type. Just to be sure, convert it",
+                  "    inputRestaurantRating = parseFloat(inputRestaurantRating);",
+                  "    ",
+                  "    pm.expect(restaurantResponse.id).eql(inputRestaurantId);",
+                  "    pm.expect(restaurantResponse.name).eql(inputRestaurantName);",
+                  "    pm.expect(restaurantResponse.rating).eql(inputRestaurantRating);",
+                  "});",
+                  "",
+                  "pm.test(\"saving full restaurant response in env\", function () {",
+                  "    //save the full response in env for later use",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    //update with current restaurant data",
+                  "    allRestaurantsData[restaurantResponse.id] = restaurantResponse;",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "       console.log(\"updated rating to: \" + allRestaurantsData[restaurantResponse.id].rating);",
+                  "    }",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{inputRestaurant5Name}}\",\n    \"rating\": {{inputRestaurant5Rating}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId5}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "{{restaurantId5}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "(negative)  update restaurant6 rating",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f42742b0-ea26-4da1-a876-334b77792ea0",
+                "exec": [
+                  "pm.test(\"status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test(\"response has error message\", function () {",
+                  "    let jsonData = pm.response.json();",
+                  "    ",
+                  "    let errorIndicatorProperty = pm.environment.get(\"errorIndicatorProperty\"); ",
+                  "    pm.expect(jsonData).to.have.property(errorIndicatorProperty);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{inputRestaurant6Name}}\",\n    \"rating\": {{inputRestaurant6Rating}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId6}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "{{restaurantId6}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "(negative) get restaurant using a never existing restaurantId",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "7ab9f44b-fe38-4959-be64-0578397b64f6",
+                "exec": [
+                  "pm.test(\"status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test(\"response has error message\", function () {",
+                  "    let jsonData = pm.response.json();",
+                  "    ",
+                  "    let errorIndicatorProperty = pm.environment.get(\"errorIndicatorProperty\"); ",
+                  "    pm.expect(jsonData).to.have.property(errorIndicatorProperty);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{neverExistingRestaurantId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "{{neverExistingRestaurantId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "search restaurants by a non-existent search term",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "2ec15390-0f09-4c39-a15d-45a45716af54",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"zero results for non-existent search term\", function () {",
+                  "    let restaurants = pm.response.json();",
+                  "    pm.expect(Array.isArray(restaurants)).to.be.true;",
+                  "    pm.expect(restaurants.length).to.eql(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/search/{{searchTermNonExistent}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "search",
+                "{{searchTermNonExistent}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "search restaurants before renaming an existing restaurant name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "2ec15390-0f09-4c39-a15d-45a45716af54",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurants schema validation\", function () {",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantsArraySchema = pm.environment.get('restaurantsArraySchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantsResponse, restaurantsArraySchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"should return expected number of restaurants in response\", function () {",
+                  "    ",
+                  "    let expectedRestaurantIds = pm.environment.get('searchTermBeforeRenameResults');",
+                  "    expectedRestaurantIds = expectedRestaurantIds.split(\",\");//convert to an array",
+                  "    ",
+                  "    let expectedNumberOfRestaurants = expectedRestaurantIds.length;",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "      console.log(\"verifying length: \" + restaurantsResponse.length + \" === \" + expectedNumberOfRestaurants);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(restaurantsResponse.length).to.eql(expectedNumberOfRestaurants);",
+                  "    ",
+                  "});",
+                  "",
+                  "pm.test(\"should return expected restaurant Ids in response\", function () {",
+                  "    ",
+                  "    let expectedRestaurantIds = pm.environment.get('searchTermBeforeRenameResults');",
+                  "    ",
+                  "    expectedRestaurantIds = expectedRestaurantIds.split(\",\");//convert to an array",
+                  "    ",
+                  "    //map an integer Id like 1 to the value stored in env for restaurantId1",
+                  "    //1 ->  pm.environment.get('restaurantId1')",
+                  "    //2 ->  pm.environment.get('restaurantId2') and so on.",
+                  "    expectedRestaurantIds = expectedRestaurantIds.map(strId => pm.environment.get('restaurantId' + parseInt(strId)));",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "       console.log(\"Expecting restaurant Ids: \" + JSON.stringify(expectedRestaurantIds));",
+                  "    }",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantIdsInResponse = restaurantsResponse.map(r => r.id);",
+                  "    ",
+                  "    //check each expected Id is in the response array",
+                  "    expectedRestaurantIds.forEach( function(expectedId) {",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "           console.log(\"verifying response Ids: \" + JSON.stringify(restaurantIdsInResponse) + \" contains expected Id:  \" + expectedId);",
+                  "        }",
+                  "        ",
+                  "        let expectedIdExistsInResponse = restaurantIdsInResponse.indexOf(expectedId) !== -1;",
+                  "        ",
+                  "        pm.expect(expectedIdExistsInResponse).to.be.true;",
+                  "        ",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test(\"should have matching id, name for all restaurants\", function () {",
+                  "    ",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    //for each restaurant in the response array, check id, name match expected values",
+                  "    restaurantsResponse.forEach( function (restaurantResponse) {",
+                  "        ",
+                  "        let expectedRestaurantInfo = allRestaurantsData[restaurantResponse.id];",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "            console.log(\"verifying id: \" + restaurantResponse.id + \" === \" + expectedRestaurantInfo.id);",
+                  "            console.log(\"verifying name: \" + restaurantResponse.name + \" === \" + expectedRestaurantInfo.name);",
+                  "            console.log(\"verifying rating: \" + restaurantResponse.rating + \" === \" + expectedRestaurantInfo.rating);",
+                  "        }",
+                  "        ",
+                  "        pm.expect(restaurantResponse.id).to.eql(expectedRestaurantInfo.id);",
+                  "        pm.expect(restaurantResponse.name).to.eql(expectedRestaurantInfo.name);  ",
+                  "        pm.expect(restaurantResponse.rating).to.eql(expectedRestaurantInfo.rating); ",
+                  "    });",
+                  "    ",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/search/{{searchTermBeforeRename}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "search",
+                "{{searchTermBeforeRename}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "search restaurants that match at beginning of their name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "2ec15390-0f09-4c39-a15d-45a45716af54",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurants schema validation\", function () {",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantsArraySchema = pm.environment.get('restaurantsArraySchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantsResponse, restaurantsArraySchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"should return expected number of restaurants in response\", function () {",
+                  "    ",
+                  "    let expectedRestaurantIds = pm.environment.get('searchTermMatchesBeginningResults');",
+                  "    expectedRestaurantIds = expectedRestaurantIds.split(\",\");//convert to an array",
+                  "    ",
+                  "    let expectedNumberOfRestaurants = expectedRestaurantIds.length;",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "      console.log(\"verifying length: \" + restaurantsResponse.length + \" === \" + expectedNumberOfRestaurants);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(restaurantsResponse.length).to.eql(expectedNumberOfRestaurants);",
+                  "    ",
+                  "});",
+                  "",
+                  "pm.test(\"should return expected restaurant Ids in response\", function () {",
+                  "    ",
+                  "    let expectedRestaurantIds = pm.environment.get('searchTermMatchesBeginningResults');",
+                  "    ",
+                  "    expectedRestaurantIds = expectedRestaurantIds.split(\",\");//convert to an array",
+                  "    ",
+                  "    //map an integer Id like 1 to the value stored in env for restaurantId1",
+                  "    //1 ->  pm.environment.get('restaurantId1')",
+                  "    //2 ->  pm.environment.get('restaurantId2') and so on.",
+                  "    expectedRestaurantIds = expectedRestaurantIds.map(strId => pm.environment.get('restaurantId' + parseInt(strId)));",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "       console.log(\"Expecting restaurant Ids: \" + JSON.stringify(expectedRestaurantIds));",
+                  "    }",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantIdsInResponse = restaurantsResponse.map(r => r.id);",
+                  "    ",
+                  "    //check each expected Id is in the response array",
+                  "    expectedRestaurantIds.forEach( function(expectedId) {",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "           console.log(\"verifying response Ids: \" + JSON.stringify(restaurantIdsInResponse) + \" contains expected Id:  \" + expectedId);",
+                  "        }",
+                  "        ",
+                  "        let expectedIdExistsInResponse = restaurantIdsInResponse.indexOf(expectedId) !== -1;",
+                  "        ",
+                  "        pm.expect(expectedIdExistsInResponse).to.be.true;",
+                  "        ",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test(\"should have matching id, name for all restaurants\", function () {",
+                  "    ",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    //for each restaurant in the response array, check id, name match expected values",
+                  "    restaurantsResponse.forEach( function (restaurantResponse) {",
+                  "        ",
+                  "        let expectedRestaurantInfo = allRestaurantsData[restaurantResponse.id];",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "            console.log(\"verifying id: \" + restaurantResponse.id + \" === \" + expectedRestaurantInfo.id);",
+                  "            console.log(\"verifying name: \" + restaurantResponse.name + \" === \" + expectedRestaurantInfo.name);",
+                  "            console.log(\"verifying rating: \" + restaurantResponse.rating + \" === \" + expectedRestaurantInfo.rating);",
+                  "        }",
+                  "        ",
+                  "        pm.expect(restaurantResponse.id).to.eql(expectedRestaurantInfo.id);",
+                  "        pm.expect(restaurantResponse.name).to.eql(expectedRestaurantInfo.name);",
+                  "        pm.expect(restaurantResponse.rating).to.eql(expectedRestaurantInfo.rating);",
+                  "    });",
+                  "    ",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/search/{{searchTermMatchesBeginning}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "search",
+                "{{searchTermMatchesBeginning}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "search restaurants that match at ending of their name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "2ec15390-0f09-4c39-a15d-45a45716af54",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurants schema validation\", function () {",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantsArraySchema = pm.environment.get('restaurantsArraySchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantsResponse, restaurantsArraySchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"should return expected number of restaurants in response\", function () {",
+                  "    ",
+                  "    let expectedRestaurantIds = pm.environment.get('searchTermMatchesEndingResults');",
+                  "    expectedRestaurantIds = expectedRestaurantIds.split(\",\");//convert to an array",
+                  "    ",
+                  "    let expectedNumberOfRestaurants = expectedRestaurantIds.length;",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "      console.log(\"verifying length: \" + restaurantsResponse.length + \" === \" + expectedNumberOfRestaurants);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(restaurantsResponse.length).to.eql(expectedNumberOfRestaurants);",
+                  "    ",
+                  "});",
+                  "",
+                  "pm.test(\"should return expected restaurant Ids in response\", function () {",
+                  "    ",
+                  "    let expectedRestaurantIds = pm.environment.get('searchTermMatchesEndingResults');",
+                  "    ",
+                  "    expectedRestaurantIds = expectedRestaurantIds.split(\",\");//convert to an array",
+                  "    ",
+                  "    //map an integer Id like 1 to the value stored in env for restaurantId1",
+                  "    //1 ->  pm.environment.get('restaurantId1')",
+                  "    //2 ->  pm.environment.get('restaurantId2') and so on.",
+                  "    expectedRestaurantIds = expectedRestaurantIds.map(strId => pm.environment.get('restaurantId' + parseInt(strId)));",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "       console.log(\"Expecting restaurant Ids: \" + JSON.stringify(expectedRestaurantIds));",
+                  "    }",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantIdsInResponse = restaurantsResponse.map(r => r.id);",
+                  "    ",
+                  "    //check each expected Id is in the response array",
+                  "    expectedRestaurantIds.forEach( function(expectedId) {",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "           console.log(\"verifying response Ids: \" + JSON.stringify(restaurantIdsInResponse) + \" contains expected Id:  \" + expectedId);",
+                  "        }",
+                  "        ",
+                  "        let expectedIdExistsInResponse = restaurantIdsInResponse.indexOf(expectedId) !== -1;",
+                  "        ",
+                  "        pm.expect(expectedIdExistsInResponse).to.be.true;",
+                  "        ",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test(\"should have matching id, name for all restaurants\", function () {",
+                  "    ",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    //for each restaurant in the response array, check id, name match expected values",
+                  "    restaurantsResponse.forEach( function (restaurantResponse) {",
+                  "        ",
+                  "        let expectedRestaurantInfo = allRestaurantsData[restaurantResponse.id];",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "            console.log(\"verifying id: \" + restaurantResponse.id + \" === \" + expectedRestaurantInfo.id);",
+                  "            console.log(\"verifying name: \" + restaurantResponse.name + \" === \" + expectedRestaurantInfo.name);",
+                  "            console.log(\"verifying rating: \" + restaurantResponse.rating + \" === \" + expectedRestaurantInfo.rating);",
+                  "        }",
+                  "        ",
+                  "        pm.expect(restaurantResponse.id).to.eql(expectedRestaurantInfo.id);",
+                  "        pm.expect(restaurantResponse.name).to.eql(expectedRestaurantInfo.name);  ",
+                  "        pm.expect(restaurantResponse.rating).to.eql(expectedRestaurantInfo.rating);  ",
+                  "    });",
+                  "    ",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/search/{{searchTermMatchesEnding}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "search",
+                "{{searchTermMatchesEnding}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "search restaurants that match at middle of their name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "2ec15390-0f09-4c39-a15d-45a45716af54",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurants schema validation\", function () {",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantsArraySchema = pm.environment.get('restaurantsArraySchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantsResponse, restaurantsArraySchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"should return expected number of restaurants in response\", function () {",
+                  "    ",
+                  "    let expectedRestaurantIds = pm.environment.get('searchTermMatchesMiddleResults');",
+                  "    expectedRestaurantIds = expectedRestaurantIds.split(\",\");//convert to an array",
+                  "    ",
+                  "    let expectedNumberOfRestaurants = expectedRestaurantIds.length;",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "      console.log(\"verifying length: \" + restaurantsResponse.length + \" === \" + expectedNumberOfRestaurants);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(restaurantsResponse.length).to.eql(expectedNumberOfRestaurants);",
+                  "    ",
+                  "});",
+                  "",
+                  "pm.test(\"should return expected restaurant Ids in response\", function () {",
+                  "    ",
+                  "    let expectedRestaurantIds = pm.environment.get('searchTermMatchesMiddleResults');",
+                  "    ",
+                  "    expectedRestaurantIds = expectedRestaurantIds.split(\",\");//convert to an array",
+                  "    ",
+                  "    //map an integer Id like 1 to the value stored in env for restaurantId1",
+                  "    //1 ->  pm.environment.get('restaurantId1')",
+                  "    //2 ->  pm.environment.get('restaurantId2') and so on.",
+                  "    expectedRestaurantIds = expectedRestaurantIds.map(strId => pm.environment.get('restaurantId' + parseInt(strId)));",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "       console.log(\"Expecting restaurant Ids: \" + JSON.stringify(expectedRestaurantIds));",
+                  "    }",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantIdsInResponse = restaurantsResponse.map(r => r.id);",
+                  "    ",
+                  "    //check each expected Id is in the response array",
+                  "    expectedRestaurantIds.forEach( function(expectedId) {",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "           console.log(\"verifying response Ids: \" + JSON.stringify(restaurantIdsInResponse) + \" contains expected Id:  \" + expectedId);",
+                  "        }",
+                  "        ",
+                  "        let expectedIdExistsInResponse = restaurantIdsInResponse.indexOf(expectedId) !== -1;",
+                  "        ",
+                  "        pm.expect(expectedIdExistsInResponse).to.be.true;",
+                  "        ",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test(\"should have matching id, name for all restaurants\", function () {",
+                  "    ",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    //for each restaurant in the response array, check id, name match expected values",
+                  "    restaurantsResponse.forEach( function (restaurantResponse) {",
+                  "        ",
+                  "        let expectedRestaurantInfo = allRestaurantsData[restaurantResponse.id];",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "            console.log(\"verifying id: \" + restaurantResponse.id + \" === \" + expectedRestaurantInfo.id);",
+                  "            console.log(\"verifying name: \" + restaurantResponse.name + \" === \" + expectedRestaurantInfo.name);",
+                  "            console.log(\"verifying rating: \" + restaurantResponse.rating + \" === \" + expectedRestaurantInfo.rating);",
+                  "        }",
+                  "        ",
+                  "        pm.expect(restaurantResponse.id).to.eql(expectedRestaurantInfo.id);",
+                  "        pm.expect(restaurantResponse.name).to.eql(expectedRestaurantInfo.name);  ",
+                  "        pm.expect(restaurantResponse.rating).to.eql(expectedRestaurantInfo.rating);  ",
+                  "    });",
+                  "    ",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/search/{{searchTermMatchesMiddle}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "search",
+                "{{searchTermMatchesMiddle}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "search restaurants that match special character ampersand",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "2ec15390-0f09-4c39-a15d-45a45716af54",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurants schema validation\", function () {",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantsArraySchema = pm.environment.get('restaurantsArraySchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantsResponse, restaurantsArraySchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"should return expected number of restaurants in response\", function () {",
+                  "    ",
+                  "    let expectedRestaurantIds = pm.environment.get('searchTermMatchesSpecialCharAmpersandResults');",
+                  "    expectedRestaurantIds = expectedRestaurantIds.split(\",\");//convert to an array",
+                  "    ",
+                  "    let expectedNumberOfRestaurants = expectedRestaurantIds.length;",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "      console.log(\"verifying length: \" + restaurantsResponse.length + \" === \" + expectedNumberOfRestaurants);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(restaurantsResponse.length).to.eql(expectedNumberOfRestaurants);",
+                  "    ",
+                  "});",
+                  "",
+                  "pm.test(\"should return expected restaurant Ids in response\", function () {",
+                  "    ",
+                  "    let expectedRestaurantIds = pm.environment.get('searchTermMatchesSpecialCharAmpersandResults');",
+                  "    ",
+                  "    expectedRestaurantIds = expectedRestaurantIds.split(\",\");//convert to an array",
+                  "    ",
+                  "    //map an integer Id like 1 to the value stored in env for restaurantId1",
+                  "    //1 ->  pm.environment.get('restaurantId1')",
+                  "    //2 ->  pm.environment.get('restaurantId2') and so on.",
+                  "    expectedRestaurantIds = expectedRestaurantIds.map(strId => pm.environment.get('restaurantId' + parseInt(strId)));",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "       console.log(\"Expecting restaurant Ids: \" + JSON.stringify(expectedRestaurantIds));",
+                  "    }",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantIdsInResponse = restaurantsResponse.map(r => r.id);",
+                  "    ",
+                  "    //check each expected Id is in the response array",
+                  "    expectedRestaurantIds.forEach( function(expectedId) {",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "           console.log(\"verifying response Ids: \" + JSON.stringify(restaurantIdsInResponse) + \" contains expected Id:  \" + expectedId);",
+                  "        }",
+                  "        ",
+                  "        let expectedIdExistsInResponse = restaurantIdsInResponse.indexOf(expectedId) !== -1;",
+                  "        ",
+                  "        pm.expect(expectedIdExistsInResponse).to.be.true;",
+                  "        ",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test(\"should have matching id, name for all restaurants\", function () {",
+                  "    ",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    //for each restaurant in the response array, check id, name match expected values",
+                  "    restaurantsResponse.forEach( function (restaurantResponse) {",
+                  "        ",
+                  "        let expectedRestaurantInfo = allRestaurantsData[restaurantResponse.id];",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "            console.log(\"verifying id: \" + restaurantResponse.id + \" === \" + expectedRestaurantInfo.id);",
+                  "            console.log(\"verifying name: \" + restaurantResponse.name + \" === \" + expectedRestaurantInfo.name);",
+                  "            console.log(\"verifying rating: \" + restaurantResponse.rating + \" === \" + expectedRestaurantInfo.rating);",
+                  "        }",
+                  "        ",
+                  "        pm.expect(restaurantResponse.id).to.eql(expectedRestaurantInfo.id);",
+                  "        pm.expect(restaurantResponse.name).to.eql(expectedRestaurantInfo.name);  ",
+                  "        pm.expect(restaurantResponse.rating).to.eql(expectedRestaurantInfo.rating);  ",
+                  "    });",
+                  "    ",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/search/{{searchTermMatchesSpecialCharAmpersand}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "search",
+                "{{searchTermMatchesSpecialCharAmpersand}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "search restaurants that match special character apostrophe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "2ec15390-0f09-4c39-a15d-45a45716af54",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurants schema validation\", function () {",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantsArraySchema = pm.environment.get('restaurantsArraySchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantsResponse, restaurantsArraySchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"should return expected number of restaurants in response\", function () {",
+                  "    ",
+                  "    let expectedRestaurantIds = pm.environment.get('searchTermMatchesSpecialCharApostropheResults');",
+                  "    expectedRestaurantIds = expectedRestaurantIds.split(\",\");//convert to an array",
+                  "    ",
+                  "    let expectedNumberOfRestaurants = expectedRestaurantIds.length;",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "      console.log(\"verifying length: \" + restaurantsResponse.length + \" === \" + expectedNumberOfRestaurants);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(restaurantsResponse.length).to.eql(expectedNumberOfRestaurants);",
+                  "    ",
+                  "});",
+                  "",
+                  "pm.test(\"should return expected restaurant Ids in response\", function () {",
+                  "    ",
+                  "    let expectedRestaurantIds = pm.environment.get('searchTermMatchesSpecialCharApostropheResults');",
+                  "    ",
+                  "    expectedRestaurantIds = expectedRestaurantIds.split(\",\");//convert to an array",
+                  "    ",
+                  "    //map an integer Id like 1 to the value stored in env for restaurantId1",
+                  "    //1 ->  pm.environment.get('restaurantId1')",
+                  "    //2 ->  pm.environment.get('restaurantId2') and so on.",
+                  "    expectedRestaurantIds = expectedRestaurantIds.map(strId => pm.environment.get('restaurantId' + parseInt(strId)));",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "       console.log(\"Expecting restaurant Ids: \" + JSON.stringify(expectedRestaurantIds));",
+                  "    }",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantIdsInResponse = restaurantsResponse.map(r => r.id);",
+                  "    ",
+                  "    //check each expected Id is in the response array",
+                  "    expectedRestaurantIds.forEach( function(expectedId) {",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "           console.log(\"verifying response Ids: \" + JSON.stringify(restaurantIdsInResponse) + \" contains expected Id:  \" + expectedId);",
+                  "        }",
+                  "        ",
+                  "        let expectedIdExistsInResponse = restaurantIdsInResponse.indexOf(expectedId) !== -1;",
+                  "        ",
+                  "        pm.expect(expectedIdExistsInResponse).to.be.true;",
+                  "        ",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test(\"should have matching id, name for all restaurants\", function () {",
+                  "    ",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    //for each restaurant in the response array, check id, name match expected values",
+                  "    restaurantsResponse.forEach( function (restaurantResponse) {",
+                  "        ",
+                  "        let expectedRestaurantInfo = allRestaurantsData[restaurantResponse.id];",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "            console.log(\"verifying id: \" + restaurantResponse.id + \" === \" + expectedRestaurantInfo.id);",
+                  "            console.log(\"verifying name: \" + restaurantResponse.name + \" === \" + expectedRestaurantInfo.name);",
+                  "            console.log(\"verifying rating: \" + restaurantResponse.rating + \" === \" + expectedRestaurantInfo.rating);",
+                  "        }",
+                  "        ",
+                  "        pm.expect(restaurantResponse.id).to.eql(expectedRestaurantInfo.id);",
+                  "        pm.expect(restaurantResponse.name).to.eql(expectedRestaurantInfo.name);  ",
+                  "        pm.expect(restaurantResponse.rating).to.eql(expectedRestaurantInfo.rating);  ",
+                  "    });",
+                  "    ",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/search/{{searchTermMatchesSpecialCharApostrophe}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "search",
+                "{{searchTermMatchesSpecialCharApostrophe}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "search restaurants with case insensitive search term",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "2ec15390-0f09-4c39-a15d-45a45716af54",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurants schema validation\", function () {",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantsArraySchema = pm.environment.get('restaurantsArraySchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantsResponse, restaurantsArraySchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"should return expected number of restaurants in response\", function () {",
+                  "    ",
+                  "    let expectedRestaurantIds = pm.environment.get('searchTermCaseInsensitiveResults');",
+                  "    expectedRestaurantIds = expectedRestaurantIds.split(\",\");//convert to an array",
+                  "    ",
+                  "    let expectedNumberOfRestaurants = expectedRestaurantIds.length;",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "      console.log(\"verifying length: \" + restaurantsResponse.length + \" === \" + expectedNumberOfRestaurants);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(restaurantsResponse.length).to.eql(expectedNumberOfRestaurants);",
+                  "    ",
+                  "});",
+                  "",
+                  "pm.test(\"should return expected restaurant Ids in response\", function () {",
+                  "    ",
+                  "    let expectedRestaurantIds = pm.environment.get('searchTermCaseInsensitiveResults');",
+                  "    ",
+                  "    expectedRestaurantIds = expectedRestaurantIds.split(\",\");//convert to an array",
+                  "    ",
+                  "    //map an integer Id like 1 to the value stored in env for restaurantId1",
+                  "    //1 ->  pm.environment.get('restaurantId1')",
+                  "    //2 ->  pm.environment.get('restaurantId2') and so on.",
+                  "    expectedRestaurantIds = expectedRestaurantIds.map(strId => pm.environment.get('restaurantId' + parseInt(strId)));",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "       console.log(\"Expecting restaurant Ids: \" + JSON.stringify(expectedRestaurantIds));",
+                  "    }",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantIdsInResponse = restaurantsResponse.map(r => r.id);",
+                  "    ",
+                  "    //check each expected Id is in the response array",
+                  "    expectedRestaurantIds.forEach( function(expectedId) {",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "           console.log(\"verifying response Ids: \" + JSON.stringify(restaurantIdsInResponse) + \" contains expected Id:  \" + expectedId);",
+                  "        }",
+                  "        ",
+                  "        let expectedIdExistsInResponse = restaurantIdsInResponse.indexOf(expectedId) !== -1;",
+                  "        ",
+                  "        pm.expect(expectedIdExistsInResponse).to.be.true;",
+                  "        ",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test(\"should have matching id, name for all restaurants\", function () {",
+                  "    ",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    //for each restaurant in the response array, check id, name match expected values",
+                  "    restaurantsResponse.forEach( function (restaurantResponse) {",
+                  "        ",
+                  "        let expectedRestaurantInfo = allRestaurantsData[restaurantResponse.id];",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "            console.log(\"verifying id: \" + restaurantResponse.id + \" === \" + expectedRestaurantInfo.id);",
+                  "            console.log(\"verifying name: \" + restaurantResponse.name + \" === \" + expectedRestaurantInfo.name);",
+                  "            console.log(\"verifying rating: \" + restaurantResponse.rating + \" === \" + expectedRestaurantInfo.rating);",
+                  "        }",
+                  "        ",
+                  "        pm.expect(restaurantResponse.id).to.eql(expectedRestaurantInfo.id);",
+                  "        pm.expect(restaurantResponse.name).to.eql(expectedRestaurantInfo.name);  ",
+                  "        pm.expect(restaurantResponse.rating).to.eql(expectedRestaurantInfo.rating);  ",
+                  "    });",
+                  "    ",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/search/{{searchTermCaseInsensitive}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "search",
+                "{{searchTermCaseInsensitive}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "add a new restaurant7",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "8f448143-63ca-426c-a6ec-66901ca0e23a",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"name matches requested restaurant name\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let inputRestaurantName = pm.environment.get('inputRestaurant7Name');",
+                  "    ",
+                  "    pm.expect(restaurantResponse.name).eql(inputRestaurantName);",
+                  "});",
+                  "",
+                  "pm.test(\"saving the id of restaurant in env\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //save the id in env for later use",
+                  "    pm.environment.set('restaurantId7', restaurantResponse.id);",
+                  "});",
+                  "",
+                  "pm.test(\"saving full restaurant response in env\", function () {",
+                  "    //save the full response in env for later use",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    //update with current restaurant data",
+                  "    allRestaurantsData[restaurantResponse.id] = restaurantResponse;",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{inputRestaurant7Name}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "search restaurants picks up newly added restaurant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "2ec15390-0f09-4c39-a15d-45a45716af54",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurants schema validation\", function () {",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantsArraySchema = pm.environment.get('restaurantsArraySchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantsResponse, restaurantsArraySchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"should return expected number of restaurants in response\", function () {",
+                  "    ",
+                  "    let expectedRestaurantIds = pm.environment.get('searchTermPicksUpNewlyAddedRestaurantResults');",
+                  "    expectedRestaurantIds = expectedRestaurantIds.split(\",\");//convert to an array",
+                  "    ",
+                  "    let expectedNumberOfRestaurants = expectedRestaurantIds.length;",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "      console.log(\"verifying length: \" + restaurantsResponse.length + \" === \" + expectedNumberOfRestaurants);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(restaurantsResponse.length).to.eql(expectedNumberOfRestaurants);",
+                  "    ",
+                  "});",
+                  "",
+                  "pm.test(\"should return expected restaurant Ids in response\", function () {",
+                  "    ",
+                  "    let expectedRestaurantIds = pm.environment.get('searchTermPicksUpNewlyAddedRestaurantResults');",
+                  "    ",
+                  "    expectedRestaurantIds = expectedRestaurantIds.split(\",\");//convert to an array",
+                  "    ",
+                  "    //map an integer Id like 1 to the value stored in env for restaurantId1",
+                  "    //1 ->  pm.environment.get('restaurantId1')",
+                  "    //2 ->  pm.environment.get('restaurantId2') and so on.",
+                  "    expectedRestaurantIds = expectedRestaurantIds.map(strId => pm.environment.get('restaurantId' + parseInt(strId)));",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "       console.log(\"Expecting restaurant Ids: \" + JSON.stringify(expectedRestaurantIds));",
+                  "    }",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantIdsInResponse = restaurantsResponse.map(r => r.id);",
+                  "    ",
+                  "    //check each expected Id is in the response array",
+                  "    expectedRestaurantIds.forEach( function(expectedId) {",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "           console.log(\"verifying response Ids: \" + JSON.stringify(restaurantIdsInResponse) + \" contains expected Id:  \" + expectedId);",
+                  "        }",
+                  "        ",
+                  "        let expectedIdExistsInResponse = restaurantIdsInResponse.indexOf(expectedId) !== -1;",
+                  "        ",
+                  "        pm.expect(expectedIdExistsInResponse).to.be.true;",
+                  "        ",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test(\"should have matching id, name for all restaurants\", function () {",
+                  "    ",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    //for each restaurant in the response array, check id, name match expected values",
+                  "    restaurantsResponse.forEach( function (restaurantResponse) {",
+                  "        ",
+                  "        let expectedRestaurantInfo = allRestaurantsData[restaurantResponse.id];",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "            console.log(\"verifying id: \" + restaurantResponse.id + \" === \" + expectedRestaurantInfo.id);",
+                  "            console.log(\"verifying name: \" + restaurantResponse.name + \" === \" + expectedRestaurantInfo.name);",
+                  "            console.log(\"verifying rating: \" + restaurantResponse.rating + \" === \" + expectedRestaurantInfo.rating);",
+                  "        }",
+                  "        ",
+                  "        pm.expect(restaurantResponse.id).to.eql(expectedRestaurantInfo.id);",
+                  "        pm.expect(restaurantResponse.name).to.eql(expectedRestaurantInfo.name);  ",
+                  "        pm.expect(restaurantResponse.rating).to.eql(expectedRestaurantInfo.rating);  ",
+                  "    });",
+                  "    ",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/search/{{searchTermCaseInsensitive}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "search",
+                "{{searchTermCaseInsensitive}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update restaurant1 name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f42742b0-ea26-4da1-a876-334b77792ea0",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"response id, name, rating matches request id, new name, rating\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let inputRestaurantId = pm.environment.get('restaurantId1');",
+                  "    let inputRestaurantName = pm.environment.get('inputRestaurant1NewName');",
+                  "    let inputRestaurantRating = pm.environment.get('inputRestaurant1Rating');",
+                  "    ",
+                  "    //If you enter a non-string input into postman env variable manually, it may show up as a string type. Just to be sure, convert it",
+                  "    inputRestaurantRating = parseFloat(inputRestaurantRating);",
+                  "    ",
+                  "    pm.expect(restaurantResponse.id).eql(inputRestaurantId);",
+                  "    pm.expect(restaurantResponse.name).eql(inputRestaurantName);",
+                  "    pm.expect(restaurantResponse.rating).eql(inputRestaurantRating);",
+                  "});",
+                  "",
+                  "pm.test(\"saving full restaurant response in env\", function () {",
+                  "    //save the full response in env for later use",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    //update with current restaurant data",
+                  "    allRestaurantsData[restaurantResponse.id] = restaurantResponse;",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "       console.log(\"updated rating to: \" + allRestaurantsData[restaurantResponse.id].rating);",
+                  "    }",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{inputRestaurant1NewName}}\",\n    \"rating\": {{inputRestaurant1Rating}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId1}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "{{restaurantId1}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "search restaurants after renaming an existing restaurant name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "2ec15390-0f09-4c39-a15d-45a45716af54",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurants schema validation\", function () {",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantsArraySchema = pm.environment.get('restaurantsArraySchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantsResponse, restaurantsArraySchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"should return expected number of restaurants in response\", function () {",
+                  "    ",
+                  "    let expectedRestaurantIds = pm.environment.get('searchTermAfterRenameResults');",
+                  "    expectedRestaurantIds = expectedRestaurantIds.split(\",\");//convert to an array",
+                  "    ",
+                  "    let expectedNumberOfRestaurants = expectedRestaurantIds.length;",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "      console.log(\"verifying length: \" + restaurantsResponse.length + \" === \" + expectedNumberOfRestaurants);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(restaurantsResponse.length).to.eql(expectedNumberOfRestaurants);",
+                  "    ",
+                  "});",
+                  "",
+                  "pm.test(\"should return expected restaurant Ids in response\", function () {",
+                  "    ",
+                  "    let expectedRestaurantIds = pm.environment.get('searchTermAfterRenameResults');",
+                  "    ",
+                  "    expectedRestaurantIds = expectedRestaurantIds.split(\",\");//convert to an array",
+                  "    ",
+                  "    //map an integer Id like 1 to the value stored in env for restaurantId1",
+                  "    //1 ->  pm.environment.get('restaurantId1')",
+                  "    //2 ->  pm.environment.get('restaurantId2') and so on.",
+                  "    expectedRestaurantIds = expectedRestaurantIds.map(strId => pm.environment.get('restaurantId' + parseInt(strId)));",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "       console.log(\"Expecting restaurant Ids: \" + JSON.stringify(expectedRestaurantIds));",
+                  "    }",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantIdsInResponse = restaurantsResponse.map(r => r.id);",
+                  "    ",
+                  "    //check each expected Id is in the response array",
+                  "    expectedRestaurantIds.forEach( function(expectedId) {",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "           console.log(\"verifying response Ids: \" + JSON.stringify(restaurantIdsInResponse) + \" contains expected Id:  \" + expectedId);",
+                  "        }",
+                  "        ",
+                  "        let expectedIdExistsInResponse = restaurantIdsInResponse.indexOf(expectedId) !== -1;",
+                  "        ",
+                  "        pm.expect(expectedIdExistsInResponse).to.be.true;",
+                  "        ",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test(\"should have matching id, name for all restaurants\", function () {",
+                  "    ",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    //for each restaurant in the response array, check id, name match expected values",
+                  "    restaurantsResponse.forEach( function (restaurantResponse) {",
+                  "        ",
+                  "        let expectedRestaurantInfo = allRestaurantsData[restaurantResponse.id];",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "            console.log(\"verifying id: \" + restaurantResponse.id + \" === \" + expectedRestaurantInfo.id);",
+                  "            console.log(\"verifying name: \" + restaurantResponse.name + \" === \" + expectedRestaurantInfo.name);",
+                  "            console.log(\"verifying rating: \" + restaurantResponse.rating + \" === \" + expectedRestaurantInfo.rating);",
+                  "        }",
+                  "        ",
+                  "        pm.expect(restaurantResponse.id).to.eql(expectedRestaurantInfo.id);",
+                  "        pm.expect(restaurantResponse.name).to.eql(expectedRestaurantInfo.name);  ",
+                  "        pm.expect(restaurantResponse.rating).to.eql(expectedRestaurantInfo.rating);  ",
+                  "    });",
+                  "    ",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/search/{{searchTermAfterRename}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "search",
+                "{{searchTermAfterRename}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get all restaurants",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "330d9c7c-9067-437c-9fc6-3b13787c62a1",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurants schema validation\", function () {",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    let restaurantsArraySchema = pm.environment.get('restaurantsArraySchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantsResponse, restaurantsArraySchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"should have expected number of restaurants\", function () {",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    let expectedNumberOfRestaurants = Object.keys(allRestaurantsData).length;",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "       console.log(\"verifying length: \" + restaurantsResponse.length + \" === \" + expectedNumberOfRestaurants);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(restaurantsResponse.length).to.eql(expectedNumberOfRestaurants);",
+                  "    ",
+                  "});",
+                  "",
+                  "pm.test(\"should have matching id, name for all restaurants\", function () {",
+                  "    ",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    let restaurantsResponse = pm.response.json();",
+                  "    ",
+                  "    //for each restaurant in the response array, check id, name match expected values",
+                  "    restaurantsResponse.forEach( function (restaurantResponse) {",
+                  "        ",
+                  "        let expectedRestaurantInfo = allRestaurantsData[restaurantResponse.id];",
+                  "        ",
+                  "        if(pm.environment.get('isDebugMode') === 'true') {",
+                  "            console.log(\"verifying id: \" + restaurantResponse.id + \" === \" + expectedRestaurantInfo.id);",
+                  "            console.log(\"verifying name: \" + restaurantResponse.name + \" === \" + expectedRestaurantInfo.name);",
+                  "            console.log(\"verifying rating: \" + restaurantResponse.rating + \" === \" + expectedRestaurantInfo.rating);",
+                  "        }",
+                  "        ",
+                  "        pm.expect(restaurantResponse.id).to.eql(expectedRestaurantInfo.id);",
+                  "        pm.expect(restaurantResponse.name).to.eql(expectedRestaurantInfo.name);  ",
+                  "        pm.expect(restaurantResponse.rating).to.eql(expectedRestaurantInfo.rating);  ",
+                  "    });",
+                  "    ",
+                  "});",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "After setting up the test data, we can run tests using the test data",
+      "protocolProfileBehavior": {}
+    },
+    {
+      "name": "cleanup test data",
+      "item": [
+        {
+          "name": "delete restaurant1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "39a28342-cfc9-4932-8a61-d53918576446",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"should have expected deleted restaurant\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let currentRestaurantId = pm.environment.get('restaurantId1');",
+                  "    ",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    let expectedRestaurantInfo = allRestaurantsData[currentRestaurantId];",
+                  "    ",
+                  "    pm.expect(restaurantResponse.id).to.eql(expectedRestaurantInfo.id);",
+                  "    pm.expect(restaurantResponse.name).to.eql(expectedRestaurantInfo.name);",
+                  "    pm.expect(restaurantResponse.rating).to.eql(expectedRestaurantInfo.rating);",
+                  "});",
+                  "",
+                  "pm.test(\"delete restaurant info from env\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "        console.log(\"before deletion count: \" + Object.keys(allRestaurantsData).length);",
+                  "    }",
+                  "    ",
+                  "    //delete current restaurant data",
+                  "    delete allRestaurantsData[restaurantResponse.id];",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "        console.log(\"after deletion count: \" + Object.keys(allRestaurantsData).length);",
+                  "    }",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId1}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "{{restaurantId1}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete restaurant2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "39a28342-cfc9-4932-8a61-d53918576446",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"should have expected deleted restaurant\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let currentRestaurantId = pm.environment.get('restaurantId2');",
+                  "    ",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    let expectedRestaurantInfo = allRestaurantsData[currentRestaurantId];",
+                  "    ",
+                  "    pm.expect(restaurantResponse.id).to.eql(expectedRestaurantInfo.id);",
+                  "    pm.expect(restaurantResponse.name).to.eql(expectedRestaurantInfo.name);",
+                  "    pm.expect(restaurantResponse.rating).to.eql(expectedRestaurantInfo.rating);",
+                  "});",
+                  "",
+                  "pm.test(\"delete restaurant info from env\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "        console.log(\"before deletion count: \" + Object.keys(allRestaurantsData).length);",
+                  "    }",
+                  "    ",
+                  "    //delete current restaurant data",
+                  "    delete allRestaurantsData[restaurantResponse.id];",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "        console.log(\"after deletion count: \" + Object.keys(allRestaurantsData).length);",
+                  "    }",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId2}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "{{restaurantId2}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete restaurant3",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "39a28342-cfc9-4932-8a61-d53918576446",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"should have expected deleted restaurant\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let currentRestaurantId = pm.environment.get('restaurantId3');",
+                  "    ",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    let expectedRestaurantInfo = allRestaurantsData[currentRestaurantId];",
+                  "    ",
+                  "    pm.expect(restaurantResponse.id).to.eql(expectedRestaurantInfo.id);",
+                  "    pm.expect(restaurantResponse.name).to.eql(expectedRestaurantInfo.name);",
+                  "    pm.expect(restaurantResponse.rating).to.eql(expectedRestaurantInfo.rating);",
+                  "});",
+                  "",
+                  "pm.test(\"delete restaurant info from env\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "        console.log(\"before deletion count: \" + Object.keys(allRestaurantsData).length);",
+                  "    }",
+                  "    ",
+                  "    //delete current restaurant data",
+                  "    delete allRestaurantsData[restaurantResponse.id];",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "        console.log(\"after deletion count: \" + Object.keys(allRestaurantsData).length);",
+                  "    }",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId3}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "{{restaurantId3}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete restaurant4",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "39a28342-cfc9-4932-8a61-d53918576446",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"should have expected deleted restaurant\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let currentRestaurantId = pm.environment.get('restaurantId4');",
+                  "    ",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    let expectedRestaurantInfo = allRestaurantsData[currentRestaurantId];",
+                  "    ",
+                  "    pm.expect(restaurantResponse.id).to.eql(expectedRestaurantInfo.id);",
+                  "    pm.expect(restaurantResponse.name).to.eql(expectedRestaurantInfo.name);",
+                  "    pm.expect(restaurantResponse.rating).to.eql(expectedRestaurantInfo.rating);",
+                  "});",
+                  "",
+                  "pm.test(\"delete restaurant info from env\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "        console.log(\"before deletion count: \" + Object.keys(allRestaurantsData).length);",
+                  "    }",
+                  "    ",
+                  "    //delete current restaurant data",
+                  "    delete allRestaurantsData[restaurantResponse.id];",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "        console.log(\"after deletion count: \" + Object.keys(allRestaurantsData).length);",
+                  "    }",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId4}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "{{restaurantId4}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete restaurant5",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "39a28342-cfc9-4932-8a61-d53918576446",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"should have expected deleted restaurant\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let currentRestaurantId = pm.environment.get('restaurantId5');",
+                  "    ",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    let expectedRestaurantInfo = allRestaurantsData[currentRestaurantId];",
+                  "    ",
+                  "    pm.expect(restaurantResponse.id).to.eql(expectedRestaurantInfo.id);",
+                  "    pm.expect(restaurantResponse.name).to.eql(expectedRestaurantInfo.name);",
+                  "    pm.expect(restaurantResponse.rating).to.eql(expectedRestaurantInfo.rating);",
+                  "});",
+                  "",
+                  "pm.test(\"delete restaurant info from env\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "        console.log(\"before deletion count: \" + Object.keys(allRestaurantsData).length);",
+                  "    }",
+                  "    ",
+                  "    //delete current restaurant data",
+                  "    delete allRestaurantsData[restaurantResponse.id];",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "        console.log(\"after deletion count: \" + Object.keys(allRestaurantsData).length);",
+                  "    }",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId5}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "{{restaurantId5}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete restaurant7",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "39a28342-cfc9-4932-8a61-d53918576446",
+                "exec": [
+                  "",
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"restaurant schema validation\", function () {",
+                  "    ",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    let restaurantSchema = pm.environment.get('restaurantSchema');",
+                  "    ",
+                  "    let validationResult = tv4.validate(restaurantResponse, restaurantSchema);",
+                  "    if(!validationResult) {",
+                  "        console.log(\"validation failed with error : \" + tv4.error);",
+                  "    }",
+                  "    ",
+                  "    pm.expect(validationResult).to.be.true;",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"should have expected deleted restaurant\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    let currentRestaurantId = pm.environment.get('restaurantId7');",
+                  "    ",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    let expectedRestaurantInfo = allRestaurantsData[currentRestaurantId];",
+                  "    ",
+                  "    pm.expect(restaurantResponse.id).to.eql(expectedRestaurantInfo.id);",
+                  "    pm.expect(restaurantResponse.name).to.eql(expectedRestaurantInfo.name);",
+                  "    pm.expect(restaurantResponse.rating).to.eql(expectedRestaurantInfo.rating);",
+                  "});",
+                  "",
+                  "pm.test(\"delete restaurant info from env\", function () {",
+                  "    let restaurantResponse = pm.response.json();",
+                  "    ",
+                  "    //get latest from env",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "        console.log(\"before deletion count: \" + Object.keys(allRestaurantsData).length);",
+                  "    }",
+                  "    ",
+                  "    //delete current restaurant data",
+                  "    delete allRestaurantsData[restaurantResponse.id];",
+                  "    ",
+                  "    if(pm.environment.get('isDebugMode') === 'true') {",
+                  "        console.log(\"after deletion count: \" + Object.keys(allRestaurantsData).length);",
+                  "    }",
+                  "    ",
+                  "    //save updated value back to env",
+                  "    pm.environment.set('allRestaurantsData', allRestaurantsData);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId7}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants",
+                "{{restaurantId7}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "basic sanity check - cleanup env",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "7a348980-805f-4ab0-b5e7-3ff2b7ec9291",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"no data should exist finally\", function () {",
+                  "    let restaurants = pm.response.json();",
+                  "    pm.expect(Array.isArray(restaurants)).to.be.true;",
+                  "    pm.expect(restaurants.length).to.eql(0);",
+                  "});",
+                  "",
+                  "pm.test(\"cleanup environment\", function () {",
+                  "    ",
+                  "    //no data should remain in allRestaurantsData env variable",
+                  "    let allRestaurantsData = pm.environment.get('allRestaurantsData');",
+                  "    let allRestaurantsDataLength = Object.keys(allRestaurantsData).length;",
+                  "    pm.expect(allRestaurantsDataLength).to.eql(0);",
+                  "    ",
+                  "    //clean up schemas from env",
+                  "    pm.environment.unset('restaurantSchema');",
+                  "    pm.environment.unset('restaurantsArraySchema');",
+                  "    ",
+                  "    //clean up the object that stores info about all restaurants",
+                  "    pm.environment.unset('allRestaurantsData');",
+                  "",
+                  "    //cleanup restaurant ids from env",
+                  "    pm.environment.unset('restaurantId1');",
+                  "    pm.environment.unset('restaurantId2');",
+                  "    pm.environment.unset('restaurantId3');",
+                  "    pm.environment.unset('restaurantId4');",
+                  "    pm.environment.unset('restaurantId5');",
+                  "    pm.environment.unset('restaurantId6');",
+                  "    pm.environment.unset('restaurantId7');",
+                  "});",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "26e2e1b1-588e-42eb-bf66-d7a169bd3b0f",
+                "exec": [
+                  "",
+                  "",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restaurants"
+              ]
+            },
+            "description": "We will check to see what restaurant data is here. It should be empty at this point."
+          },
+          "response": []
+        }
+      ],
+      "description": "This folder contains the request we will use to cleanup our test data and our environment.",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "id": "cd1fb590-4a4d-4a5c-8c24-91c2d39de1f1",
+            "type": "text/javascript",
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "id": "0b89822f-8de4-44f5-9e63-111236286fe8",
+            "type": "text/javascript",
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ],
+      "protocolProfileBehavior": {}
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "id": "c5dd88c7-04cb-4a66-b16a-1d9be2fe61a5",
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "id": "3870894d-665a-4ef0-bf4a-3a90dfd6cdf0",
+        "type": "text/javascript",
+        "exec": [
+          "pm.test(\"executed within maximum timeout limit\", function () {",
+          "    let maxTimeOutMilliSeconds = pm.environment.get('maxTimeOutMilliSeconds');",
+          "    maxTimeOutMilliSeconds = parseInt(maxTimeOutMilliSeconds);",
+          "    pm.expect(pm.response.responseTime).to.be.lte(maxTimeOutMilliSeconds);",
+          "});",
+          "",
+          "    "
+        ]
+      }
+    }
+  ],
+  "protocolProfileBehavior": {}
+}
