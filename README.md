@@ -1,6 +1,6 @@
 # Postman2Mocha
 
-Convert postman collections and environment files to scripts that run under Mocha / Chai.
+Convert Postman collections and environment files to scripts that run under Mocha / Chai.
 
 ## Status
 At the moment only some features of Postman are implemented. Current limitations include:
