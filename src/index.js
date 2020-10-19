@@ -55,9 +55,10 @@ const convertCollection = async (source, dest) => {
     useEslintrc: false,
     fix: true,
   });
+
   const result = await eslint.lintText(code);
 
-  await fs.writeFile(dest, result[0].output);
+  await fs.writeFile(dest, result[0].output || result[0].source);
 };
 
 const convertEnvironment = async (source, dest) => {

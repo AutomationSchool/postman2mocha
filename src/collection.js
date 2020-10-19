@@ -40,7 +40,9 @@ const generateEnvironmentTemplate = str => {
 };
 
 const generateUrl = source =>
-  generateEnvironmentTemplate(`${source.host}/${source.path.join('/')}`);
+  generateEnvironmentTemplate(
+    `${source.host}/${source.path ? source.path.join('/') : ''}`,
+  );
 
 const generateRequestAssignment = source => {
   const props = [];
